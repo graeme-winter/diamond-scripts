@@ -8,10 +8,13 @@ from dials.array_family import flex
 from dials.algorithms.spot_finding.threshold import DispersionThresholdStrategy
 
 
-def signal(mask, image):
-    thresholder = DispersionThresholdStrategy(gain=1)
-    threshold_mask = thresholder(image, mask=mask)
-    return threshold_mask
+def chunk_read_image(d_id, image_number):
+    offset = (image_number, 0, 0)
+    filter_mask, chunk = d_id.read_direct_chunk(offset)
+    blob = numpy.fromstring(chunk[12:], dtype=numpy.uint8)
+    image = bitshuffle.decompress_lz4(blob, (ny, nx), dt)
+    flex_image = flex.int(image.astype("int32"))
+    return flex_image
 
 
 def main():
@@ -22,6 +25,8 @@ def main():
         mask = f["/mask"][()]
         bitmask = flex.int(mask) == 0
 
+    thresholder = DispersionThresholdStrategy(gain=1)
+
     total = None
     with h5py.File(data, "r") as f:
         d_id = f["/data"].id
@@ -29,12 +34,9 @@ def main():
         dt = f["/data"].dtype
 
         for j in range(nz):
-            offset = (j, 0, 0)
-            filter_mask, chunk = d_id.read_direct_chunk(offset)
-            blob = numpy.fromstring(chunk[12:], dtype=numpy.uint8)
-            image = bitshuffle.decompress_lz4(blob, (ny, nx), dt)
-            image = flex.int(image.astype("int32"))
-            signal_pixels = signal(bitmask, image)
+            image = chunk_read_image(d_id, j)
+            signal_pixels = thresholder(image, mask=mask)
+
             if total is None:
                 total = signal_pixels.as_1d().as_int()
             else:
