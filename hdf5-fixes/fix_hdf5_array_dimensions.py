@@ -1,18 +1,13 @@
 import h5py
 import sys
 import os
+import bitshuffle.h5
 
-
-def fix_hdf5_array_dimensions(in_filename, out_filename):
-    "Read each chunk; report size or error." ""
-
-    assert os.path.exists(in_filename)
-    assert not os.path.exists(out_filename)
-
-    with h5py.File(in_filename, "r") as f:
+def fix_hdf5_array_dimensions(in_filename):
+    with h5py.File(in_filename, "r+") as f:
         data = f["/data"]
+        filter_info = data.id.get_create_plist().get_filter(0)
         nn = data.shape[0]
-        ny, nx = data.shape[1:3]
         last = 0
         for j in range(nn):
             offset = (j, 0, 0)
@@ -24,23 +19,7 @@ def fix_hdf5_array_dimensions(in_filename, out_filename):
 
         print("True vs. claimed size: %d vs. %d" % (nn, last))
 
-        with h5py.File(out_filename, "w") as fout:
-            dout = fout.create_dataset(
-                "data",
-                shape=(last, ny, nx),
-                dtype=data.dtype,
-                chunks=(1, ny, nx),
-                compression=32008,
-            )
-            for attr in data.attrs:
-                dout.attrs[attr] = data.attrs[attr]
-            for j in range(last):
-                offset = (j, 0, 0)
-                filter_mask, chunk = data.id.read_direct_chunk(offset)
-                dout.id.write_direct_chunk(offset, chunk, filter_mask)
-
-            print("Wrote %d chunks to %s" % (last, out_filename))
-
+        data.resize(last, axis=0)
 
 if __name__ == "__main__":
-    fix_hdf5_array_dimensions(sys.argv[1], sys.argv[2])
+    fix_hdf5_array_dimensions(sys.argv[1])
