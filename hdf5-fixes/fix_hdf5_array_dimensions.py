@@ -25,11 +25,20 @@ def fix_hdf5_array_dimensions(in_filename, out_filename):
         print("True vs. claimed size: %d vs. %d" % (nn, last))
 
         with h5py.File(out_filename, "w") as fout:
-            dout = fout.create_dataset("data", (last, ny, nx), chunks=(1, ny, nx))
+            dout = fout.create_dataset(
+                "data",
+                shape=(last, ny, nx),
+                dtype=data.dtype,
+                chunks=(1, ny, nx),
+                compression=32008,
+            )
+            for attr in data.attrs:
+                dout.attrs[attr] = data.attrs[attr]
             for j in range(last):
                 offset = (j, 0, 0)
                 filter_mask, chunk = data.id.read_direct_chunk(offset)
                 dout.id.write_direct_chunk(offset, chunk, filter_mask)
+
             print("Wrote %d chunks to %s" % (last, out_filename))
 
 
