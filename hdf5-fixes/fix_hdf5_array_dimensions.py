@@ -30,7 +30,7 @@ def fix_hdf5_array_dimensions(in_filename, out_filename):
                 offset = (j, 0, 0)
                 filter_mask, chunk = data.id.read_direct_chunk(offset)
                 dout.id.write_direct_chunk(offset, chunk, filter_mask)
-            print("Wrote %d chunks to %s" % (j, out_filename))
+            print("Wrote %d chunks to %s" % (last, out_filename))
 
 
 if __name__ == "__main__":
