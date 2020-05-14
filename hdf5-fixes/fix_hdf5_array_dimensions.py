@@ -3,6 +3,7 @@ import sys
 import os
 import bitshuffle.h5
 
+
 def fix_hdf5_array_dimensions(in_filename):
     with h5py.File(in_filename, "r+") as f:
         data = f["/data"]
@@ -21,6 +22,7 @@ def fix_hdf5_array_dimensions(in_filename):
 
         if last < nn:
             data.resize(last, axis=0)
+
 
 if __name__ == "__main__":
     fix_hdf5_array_dimensions(sys.argv[1])
