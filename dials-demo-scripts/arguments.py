@@ -65,6 +65,9 @@ class ArgumentSlayer(object):
 
         return self._input_experiments
 
+    def input_experiment_names(self):
+        return sum(map(glob.glob, self._params.input.experiments), [])
+
 
 if __name__ == "__main__":
     slayer = ArgumentSlayer()
