@@ -1,0 +1,15 @@
+Grey-Area dials-demo-scripts :( [master] $ dials.python arguments.py input.experiments=~/data/i04-eiger-small/Therm_6_2_master.h5 
+input {
+  check_format = False
+  experiments = "/Users/graeme/data/i04-eiger-small/Therm_6_2_master.h5"
+  reflections = None
+}
+foo = 10
+bar = None
+output {
+  experiments = None
+  reflections = None
+}
+
+<dxtbx_model_ext.Experiment object at 0x10d658530>
+
